@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Screenshot Logger",
+    "slug": "expo-screenshot-logger-webui",
+    "version": "0.1.0",
+    "platforms": ["web"],
+    "web": {
+      "bundler": "metro"
+    },
+    "experiments": {
+      "baseUrl": "/_expo/plugins/expo-screenshot-logger"
+    }
+  }
+}

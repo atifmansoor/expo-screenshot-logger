@@ -1,0 +1,8 @@
+{
+  "platforms": ["devtools"],
+  "name": "expo-screenshot-logger",
+  "description": "Expo dev tools plugin for capturing and viewing React Native screenshots",
+  "devtools": {
+    "webpageRoot": "dist"
+  }
+}

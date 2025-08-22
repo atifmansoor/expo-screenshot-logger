@@ -1,0 +1,50 @@
+{
+  "name": "expo-screenshot-logger",
+  "version": "1.0.0",
+  "description": "Expo dev tools plugin for capturing and viewing React Native screenshots in your browser",
+  "main": "build/index.js",
+  "files": [
+    "build",
+    "dist",
+    "expo-module.config.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "cp -r src build",
+    "build:webui": "node scripts/build-webui.js",
+    "build:all": "npm run build && npm run build:webui",
+    "prepublishOnly": "npm run build:all"
+  },
+  "keywords": [
+    "expo",
+    "expo-plugin",
+    "react-native",
+    "devtools",
+    "screenshot",
+    "debugging",
+    "development-tools",
+    "mobile-development"
+  ],
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://github.com/atifmansoor/expo-screenshot-logger#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atifmansoor/expo-screenshot-logger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atifmansoor/expo-screenshot-logger/issues"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "peerDependencies": {
+    "expo": ">=49.0.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.70.0",
+    "react-native-view-shot": "^3.8.0"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~5.0.4"
+  }
+}
