@@ -1,12 +1,12 @@
 # 📸 Expo Screenshot Logger
 
-An Expo dev tools plugin for capturing and viewing React Native screenshots in your browser for easy sharing and debugging.
+An Expo dev tools plugin for capturing and viewing React Native screenshots in your browser for easy sharing and debugging with AI assistants.
 
 ## ✨ Features
 
-- 📱 **Instant Screenshot Capture** - Use `captureAndSend()` from anywhere in your React Native app
+- 📱 **Instant Screenshot Capture** - Use `captureScreenshot()` from anywhere in your React Native app
 - 🌐 **Browser Interface** - View screenshots in Expo dev tools with click-to-enlarge
-- 📋 **Copy to Clipboard** - Get data URLs ready for sharing with colleagues or AI assistants
+- 📋 **Copy to Clipboard** - Copy images directly for sharing with team members or AI assistants
 - 🎯 **Smart Labeling** - Add custom labels and see timestamps for each screenshot
 - ⚡ **Real-time Sync** - Screenshots appear instantly in the browser interface
 - 🖼️ **High Quality** - Support for PNG/JPG with customizable quality settings
@@ -24,21 +24,48 @@ An Expo dev tools plugin for capturing and viewing React Native screenshots in y
 npm install expo-screenshot-logger react-native-view-shot
 ```
 
-### Usage
+### Setup
+
+#### 1. Initialize in your app's root layout
+Add the screenshot logger to your app's root layout file (typically `app/_layout.tsx`):
 
 ```javascript
 import { useScreenshotLogger } from 'expo-screenshot-logger';
 
-export default function App() {
-  const { captureAndSend } = useScreenshotLogger();
+function AppContent() {
+  // Initialize screenshot logger (must be called at root level)
+  useScreenshotLogger();
+  
+  // ... rest of your app content
+}
+```
 
-  const handleScreenshot = () => {
-    captureAndSend('Home Screen');
+#### 2. Usage in Components
+
+**Recommended Pattern: Dynamic Import**
+```javascript
+const handleScreenshot = async () => {
+  // Import the module dynamically to get the updated function reference
+  const { captureScreenshot } = await import('expo-screenshot-logger');
+  await captureScreenshot('My Screen Label');
+};
+```
+
+**Complete Example:**
+```javascript
+import React from 'react';
+import { TouchableOpacity, Text } from 'react-native';
+
+export function MyComponent({ title }) {
+  const handleTitlePress = async () => {
+    // Import the module dynamically to get the updated function reference
+    const { captureScreenshot } = await import('expo-screenshot-logger');
+    await captureScreenshot(title);
   };
 
   return (
-    <TouchableOpacity onPress={handleScreenshot}>
-      <Text>📸 Capture Screenshot</Text>
+    <TouchableOpacity onPress={handleTitlePress}>
+      <Text>📸 {title}</Text>
     </TouchableOpacity>
   );
 }
@@ -46,11 +73,14 @@ export default function App() {
 
 ### View Screenshots
 
-1. Run your app with `npx expo start`
-2. Press `shift+m` to open dev tools
-3. Click "Screenshot Logger" in the tools list
-4. Capture screenshots in your app
-5. Click "📋 Copy Data URL" to share with AI assistants
+1. **Start your app**: Run `npx expo start`
+2. **Open dev tools**: Press `shift+m` to open Expo dev tools
+3. **Find the plugin**: Click "Screenshot Logger" in the tools list
+4. **Capture screenshots**: Use the dynamic import pattern in your app
+5. **Copy images**: 
+   - Click "📋 Copy Image" button, OR
+   - Click on any thumbnail to zoom in, then right-click and select "Copy Image" from context menu
+6. **Share with AI**: Paste directly into messaging apps or AI assistants like Claude, ChatGPT, etc.
 
 ## 🤝 Contributing
 

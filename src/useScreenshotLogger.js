@@ -1,60 +1,35 @@
-import { useEffect, useCallback } from 'react';
-import { Platform } from 'react-native';
+const { useEffect } = require('react');
+const { Platform } = require('react-native');
+const { useDevToolsPluginClient } = require('expo/devtools');
 
 /**
- * Screenshot logger hook for Expo dev tools integration
- * 
- * @returns {Object} Screenshot logger utilities
- * @returns {Function} captureAndSend - Function to capture and send screenshots
- * @returns {boolean} isConnected - Whether the dev tools client is connected
- * @returns {string} platform - Current platform (ios/android/web)
+ * Screenshot Logger Hook - Call once in your App component
+ * Following Expo Apollo Client pattern
  */
-export function useScreenshotLogger() {
-  let useDevToolsPluginClient, captureScreen;
-  
-  try {
-    ({ useDevToolsPluginClient } = require('expo/devtools'));
-    ({ captureScreen } = require('react-native-view-shot'));
-  } catch (error) {
-    if (__DEV__) {
-      console.warn('[Screenshot Logger] Required dependencies not available. Please install: expo react-native-view-shot');
-    }
-    return {
-      captureAndSend: () => {
-        if (__DEV__) {
-          console.warn('[Screenshot Logger] Dependencies not available');
-        }
-        return Promise.resolve(null);
-      },
-      isConnected: false,
-      platform: Platform.OS
-    };
-  }
-
+function useScreenshotLogger() {
   const client = useDevToolsPluginClient('expo-screenshot-logger');
-
+  
   useEffect(() => {
-    // Dev tools client connection established
+    if (client) {
+      // Set up the global capture function
+      const { setCaptureFunction } = require('./index');
+      setCaptureFunction(createCaptureFunction(client));
+    }
   }, [client]);
+  
+  // Return nothing - this hook just sets up global functionality
+}
 
-  /**
-   * Capture a screenshot and send it to the dev tools interface
-   * 
-   * @param {string} label - Label for the screenshot
-   * @param {Object} options - Screenshot options
-   * @param {string} options.format - Image format ('jpg' or 'png')
-   * @param {number} options.quality - Image quality (0-1)
-   * @returns {Promise<string|null>} Screenshot data URI or null if failed
-   */
-  const captureAndSend = useCallback(async (label = 'Screenshot', options = {}) => {
+/**
+ * Create the global capture function that components can call
+ */
+function createCaptureFunction(client) {
+  return async (label = 'Screenshot', options = {}) => {
     if (!__DEV__) {
       return null;
     }
 
     if (!client) {
-      if (__DEV__) {
-        console.warn('[Screenshot Logger] Dev tools not connected. Open dev tools and select Screenshot Logger plugin.');
-      }
       return null;
     }
 
@@ -70,6 +45,9 @@ export function useScreenshotLogger() {
         throw new Error(`Invalid quality: ${quality}. Must be between 0 and 1.`);
       }
 
+      // Dynamic import to avoid bundling issues
+      const { captureScreen } = require('react-native-view-shot');
+      
       const uri = await captureScreen({
         format,
         quality,
@@ -89,16 +67,11 @@ export function useScreenshotLogger() {
       
       return uri;
     } catch (error) {
-      if (__DEV__) {
-        console.error('[Screenshot Logger] Failed to capture screenshot:', error.message);
-      }
+      console.error('[Screenshot Logger] Failed to capture screenshot:', error.message);
       return null;
     }
-  }, [client]);
-
-  return {
-    captureAndSend,
-    isConnected: !!client,
-    platform: Platform.OS,
   };
 }
+
+module.exports = { useScreenshotLogger };
+exports.useScreenshotLogger = useScreenshotLogger;

@@ -1,6 +1,6 @@
 {
   "name": "expo-screenshot-logger",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Expo dev tools plugin for capturing and viewing React Native screenshots in your browser",
   "main": "build/index.js",
   "files": [
@@ -13,7 +13,8 @@
     "build": "cp -r src build",
     "build:webui": "node scripts/build-webui.js",
     "build:all": "npm run build && npm run build:webui",
-    "prepublishOnly": "npm run build:all"
+    "prepublishOnly": "npm run build:all",
+    "kill-8081": "for /f \"tokens=5\" %a in ('netstat -ano | findstr :8081') do taskkill //PID %a //F"
   },
   "keywords": [
     "expo",
@@ -42,9 +43,7 @@
     "expo": ">=49.0.0",
     "react": ">=18.0.0",
     "react-native": ">=0.70.0",
-    "react-native-view-shot": "^3.8.0"
+    "react-native-view-shot": "^4.0.3"
   },
-  "dependencies": {
-    "@expo/metro-runtime": "~5.0.4"
-  }
+  "dependencies": {}
 }

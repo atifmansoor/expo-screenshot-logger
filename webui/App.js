@@ -25,17 +25,154 @@ export default function App() {
   }, [client]);
 
 
+
   const copyToClipboard = async (uri, buttonId) => {
     try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(uri);
+      // First try modern clipboard API with image data
+      if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+        try {
+          // Convert data URL to blob
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          
+          // Create clipboard item with the image blob
+          const clipboardItem = new ClipboardItem({
+            [blob.type]: blob
+          });
+          
+          await navigator.clipboard.write([clipboardItem]);
+        } catch (imageError) {
+          // If image copy fails, fallback to text
+          await navigator.clipboard.writeText(uri);
+        }
       } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = uri;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
+        // Try to create an image element and copy it (older method)
+        try {
+          const img = new window.Image();
+          img.crossOrigin = 'anonymous';
+          img.src = uri;
+          
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              try {
+                // Create canvas and draw image
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                // Try to copy canvas as blob
+                canvas.toBlob(async (blob) => {
+                  try {
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                      const clipboardItem = new ClipboardItem({
+                        [blob.type]: blob
+                      });
+                      await navigator.clipboard.write([clipboardItem]);
+                      resolve();
+                    } else {
+                      // Try alternative method: create object URL and copy that
+                      const objectUrl = URL.createObjectURL(blob);
+                      if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(objectUrl);
+                        resolve();
+                      } else {
+                        throw new Error('No clipboard API available');
+                      }
+                    }
+                  } catch (e) {
+                    reject(e);
+                  }
+                });
+              } catch (e) {
+                reject(e);
+              }
+            };
+            img.onerror = reject;
+          });
+        } catch (canvasError) {
+          // Try creating a canvas and copying it as an image
+          try {
+            const img = new window.Image();
+            img.crossOrigin = 'anonymous';
+            
+            await new Promise((resolve, reject) => {
+              img.onload = () => {
+                try {
+                  // Create canvas and draw the image
+                  const canvas = document.createElement('canvas');
+                  const ctx = canvas.getContext('2d');
+                  canvas.width = img.naturalWidth || img.width;
+                  canvas.height = img.naturalHeight || img.height;
+                  ctx.drawImage(img, 0, 0);
+                  
+                  // Convert canvas to blob and create object URL
+                  canvas.toBlob(async (blob) => {
+                    try {
+                      // Create an image element with the blob URL
+                      const blobUrl = URL.createObjectURL(blob);
+                      const imgElement = document.createElement('img');
+                      imgElement.src = blobUrl;
+                      imgElement.style.maxWidth = '100%';
+                      imgElement.style.height = 'auto';
+                      
+                      // Create a temporary contentEditable div
+                      const container = document.createElement('div');
+                      container.contentEditable = 'true';
+                      container.style.position = 'fixed';
+                      container.style.left = '-9999px';
+                      container.style.opacity = '0';
+                      container.appendChild(imgElement);
+                      document.body.appendChild(container);
+                      
+                      // Focus and select the image
+                      container.focus();
+                      const range = document.createRange();
+                      range.selectNodeContents(container);
+                      const selection = window.getSelection();
+                      selection.removeAllRanges();
+                      selection.addRange(range);
+                      
+                      // Copy using execCommand
+                      const successful = document.execCommand('copy');
+                      
+                      // Cleanup
+                      document.body.removeChild(container);
+                      URL.revokeObjectURL(blobUrl);
+                      
+                      if (successful) {
+                        resolve();
+                      } else {
+                        reject(new Error('Canvas image copy failed'));
+                      }
+                    } catch (e) {
+                      reject(e);
+                    }
+                  }, 'image/png');
+                } catch (e) {
+                  reject(e);
+                }
+              };
+              img.onerror = reject;
+              img.src = uri;
+            });
+          } catch (imageElementError) {
+            // Final fallback to execCommand with data URL
+            const textArea = document.createElement('textarea');
+            textArea.value = uri;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (!successful) {
+              throw new Error('document.execCommand failed');
+            }
+          }
+        }
       }
       
       setCopiedStates(prev => ({ ...prev, [buttonId]: true }));
@@ -45,7 +182,11 @@ export default function App() {
       }, 2000);
       
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      // Show error feedback
+      setCopiedStates(prev => ({ ...prev, [buttonId]: 'error' }));
+      setTimeout(() => {
+        setCopiedStates(prev => ({ ...prev, [buttonId]: false }));
+      }, 3000);
     }
   };
 
@@ -150,11 +291,19 @@ export default function App() {
         </View>
       </View>
 
+      {screenshots.length > 0 && (
+        <View style={styles.helpText}>
+          <Text style={styles.helpTextContent}>
+            💡 Tip: Click on any thumbnail to zoom in. If "Copy Image" doesn't work, right-click on the zoomed image to select "Copy Image" from the context menu.
+          </Text>
+        </View>
+      )}
+
       {screenshots.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>
             No screenshots captured yet.{'\n\n'}
-            Use captureAndSend() in your app to capture screenshots.{'\n\n'}
+            Use captureScreenshot() in your app to capture screenshots.{'\n\n'}
           </Text>
         </View>
       ) : (
@@ -185,7 +334,8 @@ export default function App() {
                     onPress={() => copyToClipboard(screenshot.uri, `grid-${screenshot.timestamp}-${index}`)}
                   >
                     <Text style={styles.copyButtonText}>
-                      {copiedStates[`grid-${screenshot.timestamp}-${index}`] ? '✓ Copied!' : '📋 Copy Data URL'}
+                      {copiedStates[`grid-${screenshot.timestamp}-${index}`] === 'error' ? '❌ Copy Failed' : 
+                       copiedStates[`grid-${screenshot.timestamp}-${index}`] ? '✓ Copied!' : '📋 Copy Image'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -212,7 +362,7 @@ export default function App() {
                   onPress={() => copyToClipboard(enlargedImage.uri, 'enlarged')}
                 >
                   <Text style={styles.enlargedButtonText}>
-                    {copiedStates['enlarged'] ? '✓ Copied!' : '📋 Copy Data URL'}
+                    {copiedStates['enlarged'] ? '✓ Copied!' : '📋 Copy Image'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -385,6 +535,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#999',
     marginBottom: 8,
+  },
+  helpText: {
+    backgroundColor: '#e3f2fd',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196F3',
+  },
+  helpTextContent: {
+    fontSize: 13,
+    color: '#1565c0',
+    lineHeight: 18,
   },
   copyButton: {
     backgroundColor: '#4CAF50',
