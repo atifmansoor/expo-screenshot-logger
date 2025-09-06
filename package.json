@@ -1,6 +1,6 @@
 {
   "name": "expo-screenshot-logger",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Expo dev tools plugin for capturing and viewing React Native screenshots in your browser",
   "main": "build/index.js",
   "files": [

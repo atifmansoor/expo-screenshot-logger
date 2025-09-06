@@ -1,6 +1,6 @@
 # 📸 Expo Screenshot Logger
 
-An Expo dev tools plugin for capturing and viewing React Native screenshots in your browser for easy sharing and debugging with AI assistants.
+An Expo dev tools plugin for capturing and viewing React Native screenshots in your browser for easy sharing or debugging with AI assistants.
 
 ## ✨ Features
 
@@ -12,8 +12,18 @@ An Expo dev tools plugin for capturing and viewing React Native screenshots in y
 - 🖼️ **High Quality** - Support for PNG/JPG with customizable quality settings
 
 ### Screenshots
+These screenshots are of the tool capturing screenshots of the example app (see /example).
+
+Initial load of the expo-screenshot-logger dev tool plugin:
+
 ![start.png](screenshots/start.png)
+
+We have now captured a screenshot of our example app and we can see it in our dev tool:
+
 ![captured.png](screenshots/captured.png)
+
+We can click on the image to zoom-in and copy to our clipboard for sharing:
+
 ![zoomed-in.png](screenshots/zoomed-in.png)
 
 ## 🚀 Quick Start
@@ -52,6 +62,8 @@ const handleScreenshot = async () => {
 ```
 
 **Complete Example:**
+
+Here we have set up a touchable text component (could be a header) as a discreet way of capturing screenshots from our app:
 ```javascript
 import React from 'react';
 import { TouchableOpacity, Text } from 'react-native';
@@ -65,7 +77,7 @@ export function MyComponent({ title }) {
 
   return (
     <TouchableOpacity onPress={handleTitlePress}>
-      <Text>📸 {title}</Text>
+      <Text>{title}</Text>
     </TouchableOpacity>
   );
 }
@@ -80,7 +92,7 @@ export function MyComponent({ title }) {
 5. **Copy images**: 
    - Click "📋 Copy Image" button, OR
    - Click on any thumbnail to zoom in, then right-click and select "Copy Image" from context menu
-6. **Share with AI**: Paste directly into messaging apps or AI assistants like Claude, ChatGPT, etc.
+6. **Share**: Paste directly into messaging apps or AI assistants like Claude, ChatGPT, etc.
 
 ## 🤝 Contributing
 
