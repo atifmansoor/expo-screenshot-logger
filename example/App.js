@@ -1,33 +1,38 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { useScreenshotLogger } from './useScreenshotLogger';
+import { useScreenshotLogger } from 'expo-screenshot-logger';
 
 function AppContent() {
-  const { captureAndSend, isConnected, platform } = useScreenshotLogger();
+  // Initialize screenshot logger
+  useScreenshotLogger();
 
   const handleScreenshot = async () => {
-    await captureAndSend('Example Screenshot');
+    // Import the module dynamically to get the updated function reference
+    const { captureScreenshot } = await import('expo-screenshot-logger');
+    await captureScreenshot('Example Screenshot');
   };
 
   const testMultipleFormats = async () => {
-    await captureAndSend('High Quality PNG', { format: 'png', quality: 1.0 });
+    // Import the module dynamically to get the updated function reference
+    const { captureScreenshot } = await import('expo-screenshot-logger');
+    
+    await captureScreenshot('High Quality PNG', { format: 'png', quality: 1.0 });
     
     setTimeout(async () => {
-      await captureAndSend('Standard JPG', { format: 'jpg', quality: 0.8 });
+      await captureScreenshot('Standard JPG', { format: 'jpg', quality: 0.8 });
     }, 1000);
     
     setTimeout(async () => {
-      await captureAndSend('Compressed JPG', { format: 'jpg', quality: 0.3 });
+      await captureScreenshot('Compressed JPG', { format: 'jpg', quality: 0.3 });
     }, 2000);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Screenshot Logger Demo</Text>
-      <Text style={styles.status}>
-        Status: {isConnected ? '✅ Connected' : '❌ Disconnected'}
+      <Text style={styles.subtitle}>
+        Capture screenshots and view them in Expo dev tools
       </Text>
-      <Text style={styles.platform}>Platform: {platform}</Text>
       
       <View style={styles.buttonGroup}>
         <TouchableOpacity style={styles.button} onPress={handleScreenshot}>
@@ -71,16 +76,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 12,
     textAlign: 'center',
   },
-  status: {
+  subtitle: {
     fontSize: 16,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  platform: {
-    fontSize: 14,
     marginBottom: 20,
     textAlign: 'center',
     color: '#666',
